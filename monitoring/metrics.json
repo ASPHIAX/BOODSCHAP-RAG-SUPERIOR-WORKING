@@ -1,0 +1,28 @@
+{
+  "timestamp": "2025-06-20T08:31:53.616Z",
+  "container": "ultimate-working",
+  "memory": {
+    "rss": 45916160,
+    "heapTotal": 5087232,
+    "heapUsed": 4407600,
+    "external": 443518,
+    "arrayBuffers": 11382
+  },
+  "uptime": 0.017770858,
+  "nodeVersion": "v18.20.8",
+  "endpoints": {
+    "mcp": "operational",
+    "health": "operational",
+    "main": "operational"
+  },
+  "security": {
+    "score": "19/19",
+    "vulnerabilities": 0,
+    "features": [
+      "helmet",
+      "cors",
+      "rate-limiting",
+      "input-validation"
+    ]
+  }
+}
