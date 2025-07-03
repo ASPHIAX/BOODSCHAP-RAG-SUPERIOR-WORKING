@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  mcp-server:
+    build: .
+    image: ultimate-mcp-server:latest
+    container_name: mcp-server-${ENVIRONMENT:-dev}
+    restart: unless-stopped
+    ports:
+      - "${MCP_PORT:-3002}:3000"
+      - "${HEALTH_PORT:-3003}:3001"
+    environment:
+      - NODE_ENV=${NODE_ENV:-development}
+      - PORT=3000
+      - HEALTH_PORT=3001
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    volumes:
+      - ./logs:/app/logs
+    labels:
+      - "com.example.service=mcp-server"
+      - "com.example.environment=${ENVIRONMENT:-dev}"
+    networks:
+      - mcp-network
+
+  # Optional: Add monitoring services
+  # prometheus:
+  #   image: prom/prometheus:latest
+  #   container_name: prometheus
+  #   ports:
+  #     - "9090:9090"
+  #   volumes:
+  #     - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+  #   networks:
+  #     - mcp-network
+
+networks:
+  mcp-network:
+    driver: bridge
+
+volumes:
+  logs:
+    driver: local
