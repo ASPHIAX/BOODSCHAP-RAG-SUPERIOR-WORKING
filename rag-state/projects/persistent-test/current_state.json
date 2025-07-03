@@ -1,0 +1,13 @@
+{
+  "projectName": "persistent-test",
+  "state": {
+    "status": "persistent",
+    "version": "2.0",
+    "restart_safe": true
+  },
+  "context": {},
+  "created": "2025-07-03T17:14:19.710Z",
+  "lastUpdated": "2025-07-03T17:14:19.710Z",
+  "version": "2.0.0",
+  "history": []
+}
