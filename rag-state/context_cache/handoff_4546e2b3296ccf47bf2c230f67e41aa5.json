@@ -1,0 +1,21 @@
+{
+  "handoffId": "4546e2b3296ccf47bf2c230f67e41aa5",
+  "sessionId": "session-test",
+  "projectName": "PROJECT-TEST",
+  "status": "completed",
+  "createdAt": 1751618418068,
+  "createdISO": "2025-07-04T08:40:18.068Z",
+  "sourceSession": {
+    "id": "session-test",
+    "project": "PROJECT-TEST",
+    "capturedAt": 1751618418068
+  },
+  "handoffChain": [],
+  "metadata": {
+    "version": "2.0.0",
+    "enterprise": true,
+    "sophisticatedFeatures": true
+  },
+  "completedAt": 1751618418068,
+  "completedISO": "2025-07-04T08:40:18.068Z"
+}

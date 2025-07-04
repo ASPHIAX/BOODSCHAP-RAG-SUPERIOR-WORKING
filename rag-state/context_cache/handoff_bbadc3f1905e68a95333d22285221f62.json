@@ -1,0 +1,19 @@
+{
+  "handoffId": "bbadc3f1905e68a95333d22285221f62",
+  "sessionId": "test-session-456",
+  "projectName": "TEST-PROJECT-HANDOFF",
+  "status": "initiated",
+  "createdAt": 1751618406669,
+  "createdISO": "2025-07-04T08:40:06.669Z",
+  "sourceSession": {
+    "id": "test-session-456",
+    "project": "TEST-PROJECT-HANDOFF",
+    "capturedAt": 1751618406669
+  },
+  "handoffChain": [],
+  "metadata": {
+    "version": "2.0.0",
+    "enterprise": true,
+    "sophisticatedFeatures": true
+  }
+}

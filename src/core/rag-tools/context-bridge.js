@@ -298,6 +298,9 @@ export class BOSSContextBridge {
 
         return await this.completeHandoff(params.sessionId);
 
+            case 'get_session_context':
+        return await this.getSessionContext(params.sessionId, params.projectName);
+
       default:
         throw new Error('Unknown operation: ' + operation);
       }
@@ -358,6 +361,41 @@ export class BOSSContextBridge {
   /**
    * Capture session context with timestamp intelligence
    */
+
+  async getSessionContext(sessionId, projectName) {
+    try {
+      const fileName = `${sessionId}.json`;
+      const sessionFile = path.join(this.contextCacheDir, fileName);
+      
+      if (!(await this.fileExists(sessionFile))) {
+        return {
+          success: false,
+          error: 'Session not found',
+          sessionId,
+          projectName
+        };
+      }
+
+      const sessionData = JSON.parse(await fs.readFile(sessionFile, 'utf8'));
+      
+      return {
+        success: true,
+        sessionId,
+        projectName,
+        context: sessionData.context,
+        metadata: sessionData.metadata,
+        timestamp: sessionData.captureTime || sessionData.timestamp
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message,
+        sessionId,
+        projectName
+      };
+    }
+  }
+
   async captureSession(sessionId, projectName, context = {}, metadata = {}) {
     try {
       const sessionData = {

@@ -117,7 +117,7 @@ export function initializeMCPTools() {
         projectName: { type: 'string' },
         state: { type: 'object' }
       },
-      required: ['operation']
+      required: ['operation', 'projectName']
     }
   });
 

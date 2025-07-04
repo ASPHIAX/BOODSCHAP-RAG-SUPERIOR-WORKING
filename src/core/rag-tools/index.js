@@ -160,105 +160,56 @@ export const ragSuperiorTools = [
 export { BOSSContextBridge, BOSSStateTracker, EnhancedVectorSearch };
 
 
+
 // Compatibility wrappers for existing MCP handler interface
 export async function executeStateTrackerTool(args, requestId) {
   try {
     const instance = new BOSSStateTracker();
-    let result;
-
-    if ('execute' === 'searchWithTimestampPriority') {
-      result = await instance.execute(args.query, [], args);
-    } else if ('execute' === 'getRelevantContext') {
-      result = await instance.execute(args.projectName, args.query, args);
-    } else {
-      result = await instance.execute(args);
-    }
-
+    const result = await instance.execute(args);
     return { jsonrpc: "2.0", id: requestId, result: { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] } };
   } catch (error) {
     return { jsonrpc: "2.0", id: requestId, error: { code: -32603, message: "Internal error", data: error.message } };
   }
-
 }
 
 export async function executeVectorSearchTool(args, requestId) {
   try {
     const instance = new EnhancedVectorSearch();
-    let result;
-
-    if ('searchWithTimestampPriority' === 'searchWithTimestampPriority') {
-      result = await instance.searchAll(args.query, ["qdrant"], args.limit || 10);
-    } else if ('searchWithTimestampPriority' === 'getRelevantContext') {
-      result = await instance.searchWithTimestampPriority(args.projectName, args.query, args);
-    } else {
-      result = await instance.searchWithTimestampPriority(args);
-    }
-
+    const result = await instance.searchAll(args.query, ["qdrant"], args.limit || 10);
     return { jsonrpc: "2.0", id: requestId, result: { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] } };
   } catch (error) {
     return { jsonrpc: "2.0", id: requestId, error: { code: -32603, message: "Internal error", data: error.message } };
   }
-
 }
 
 export async function executeRagSuperiorTool(args, requestId) {
   try {
-    const instance = new RAGSuperiorManager();
-    let result;
-
-    if ('getRelevantContext' === 'searchWithTimestampPriority') {
-      result = await instance.getRelevantContext(args.query, [], args);
-    } else if ('getRelevantContext' === 'getRelevantContext') {
-      result = await instance.getRelevantContext(args.projectName, args.query, args);
-    } else {
-      result = await instance.getRelevantContext(args);
-    }
-
+    const manager = new RAGSuperiorManager();
+    const result = await manager.getRelevantContext(args.projectName, args.query, args);
     return { jsonrpc: "2.0", id: requestId, result: { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] } };
   } catch (error) {
     return { jsonrpc: "2.0", id: requestId, error: { code: -32603, message: "Internal error", data: error.message } };
   }
-
 }
 
 export async function executeRagSuperiorManagerTool(args, requestId) {
   try {
-    const instance = new RAGSuperiorManager();
-    let result;
-
-    if ('orchestrateRAGOperations' === 'searchWithTimestampPriority') {
-      result = await instance.orchestrateRAGOperations(args.query, [], args);
-    } else if ('orchestrateRAGOperations' === 'getRelevantContext') {
-      result = await instance.orchestrateRAGOperations(args.projectName, args.query, args);
-    } else {
-      result = await instance.orchestrateRAGOperations(args);
-    }
-
+    const manager = new RAGSuperiorManager();
+    const result = await manager.getRelevantContext(args.projectName, args.query, args);
     return { jsonrpc: "2.0", id: requestId, result: { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] } };
   } catch (error) {
     return { jsonrpc: "2.0", id: requestId, error: { code: -32603, message: "Internal error", data: error.message } };
   }
-
 }
 
 export async function executeContextBridgeTool(args, requestId) {
   try {
     const instance = new BOSSContextBridge();
-    let result;
-
-    if ('execute' === 'searchWithTimestampPriority') {
-      result = await instance.execute(args.query, [], args);
-    } else if ('execute' === 'getRelevantContext') {
-      result = await instance.execute(args.projectName, args.query, args);
-    } else {
-      result = await instance.execute(args);
-    }
-
+    const result = await instance.execute(args);
     return { jsonrpc: "2.0", id: requestId, result: { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] } };
   } catch (error) {
     return { jsonrpc: "2.0", id: requestId, error: { code: -32603, message: "Internal error", data: error.message } };
   }
-
 }
 
 export default { executeStateTrackerTool, executeVectorSearchTool, executeRagSuperiorTool, executeRagSuperiorManagerTool, executeContextBridgeTool };

@@ -1,0 +1,59 @@
+{
+  "projectName": "CONTAINER-NETWORK-REBUILD-ANALYSIS",
+  "state": {
+    "discovery_session": "2025-07-03T19:48:00Z",
+    "objective": "Document critical network and container configuration for successful rebuild testing",
+    "network_intelligence": {
+      "network_name": "boss-dev-network",
+      "network_type": "custom_docker_network",
+      "network_range": "172.18.0.0/16",
+      "container_ips": {
+        "BOODSCHAPP-DEPLOY-RAG-SUPERIOR-DEV-ENTERPRISE-V4": "172.18.0.10",
+        "BOSS-REAL-MONGODB-DEV": "172.18.0.16",
+        "BOSS-QDRANT-DEV": "172.18.0.7"
+      }
+    },
+    "container_configuration": {
+      "name": "BOODSCHAPP-DEPLOY-RAG-SUPERIOR-DEV-ENTERPRISE-V4",
+      "image": "node:18",
+      "ports": "8080:8201",
+      "network": "boss-dev-network",
+      "bind_mount": "/opt/GIT/DEPLOY-BOODSCHAPP-RAG-SUPERIOR-DEV:/app",
+      "development_mode": true
+    },
+    "database_connections": {
+      "mongodb": {
+        "host_access": "192.168.68.94:27018",
+        "internal_ip": "172.18.0.16:27017",
+        "container_name": "BOSS-REAL-MONGODB-DEV:27017",
+        "all_methods_working": true
+      },
+      "qdrant": {
+        "host_access": "http://192.168.68.94:19104",
+        "internal_ip": "http://172.18.0.7:6333",
+        "container_name": "http://BOSS-QDRANT-DEV:6333",
+        "all_methods_working": true
+      }
+    },
+    "rebuild_requirements": {
+      "network": "--network boss-dev-network",
+      "port_mapping": "-p 8201:8080",
+      "development_option": "-v /opt/GIT/BOODSCHAP-RAG-SUPERIOR-WORKING:/app",
+      "production_option": "docker build from repository"
+    },
+    "critical_findings": [
+      "Current container uses bind mount for live development",
+      "boss-dev-network allows both internal and host IP access",
+      "All three connection methods work: host IP, internal IP, container names",
+      "Current code configuration will work for rebuild with correct network",
+      "No code changes needed - existing host IP addresses work"
+    ],
+    "status": "analysis_complete",
+    "next_action": "ready_for_rebuild_test"
+  },
+  "context": {},
+  "created": "2025-07-03T19:49:11.457Z",
+  "lastUpdated": "2025-07-03T19:49:11.457Z",
+  "version": "2.0.0",
+  "history": []
+}

@@ -1,0 +1,25 @@
+{
+  "projectName": "MCP-RESTART-PROTOCOL-ENTERPRISE",
+  "state": {
+    "protocol_type": "CRITICAL_ENTERPRISE_DOCUMENTATION",
+    "category": "MCP_SERVER_OPERATIONS",
+    "priority": "MANDATORY",
+    "applies_to": "ALL_MCP_PROJECTS",
+    "lesson_learned_date": "2025-07-03",
+    "source_project": "BOODSCHAPP-DEPLOY-RAG-SUPERIOR-DEV-ENTERPRISE-V4",
+    "validation_status": "PROVEN_CRITICAL",
+    "restart_scenarios": [
+      "tool_implementation_changes",
+      "file_structure_changes",
+      "mcp_handler_updates",
+      "import_order_fixes"
+    ],
+    "enterprise_impact": "2_HOURS_DEBUGGING_TIME_SAVED",
+    "mandatory_compliance": true
+  },
+  "context": {},
+  "created": "2025-07-03T20:51:43.459Z",
+  "lastUpdated": "2025-07-03T20:51:43.460Z",
+  "version": "2.0.0",
+  "history": []
+}

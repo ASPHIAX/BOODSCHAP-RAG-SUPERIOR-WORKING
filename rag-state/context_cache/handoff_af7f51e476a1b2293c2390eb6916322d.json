@@ -1,0 +1,19 @@
+{
+  "handoffId": "af7f51e476a1b2293c2390eb6916322d",
+  "sessionId": "final-validation-handoff-test",
+  "projectName": "RAG-VALIDATION-FINAL",
+  "status": "initiated",
+  "createdAt": 1751619126729,
+  "createdISO": "2025-07-04T08:52:06.729Z",
+  "sourceSession": {
+    "id": "final-validation-handoff-test",
+    "project": "RAG-VALIDATION-FINAL",
+    "capturedAt": 1751619126729
+  },
+  "handoffChain": [],
+  "metadata": {
+    "version": "2.0.0",
+    "enterprise": true,
+    "sophisticatedFeatures": true
+  }
+}
