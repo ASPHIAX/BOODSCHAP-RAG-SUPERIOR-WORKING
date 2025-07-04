@@ -5,7 +5,7 @@ import { mcpSchemas, validateMCPMessage } from './mcp-validation.js';
 import { executeEchoTool } from './tools/echo-tool.js';
 import { executeCalculateTool } from './tools/calculate-tool.js';
 import { executeServerInfoTool } from './tools/server-info-tool.js';
-import { executeStateTrackerTool, executeVectorSearchTool, executeRagSuperiorTool, executeRagSuperiorManagerTool, executeContextBridgeTool } from './tools/rag-superior-tools.js';
+import { executeStateTrackerTool, executeVectorSearchTool, executeRagSuperiorTool, executeRagSuperiorManagerTool, executeContextBridgeTool } from './rag-tools/index.js';
 
 // Handle initialize request (30 lines)
 export async function handleInitialize(data, ws, clients) {

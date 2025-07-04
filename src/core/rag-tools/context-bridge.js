@@ -282,6 +282,22 @@ export class BOSSContextBridge {
         return await this.injectRealTimeData(params.context);
       case 'process_query_realtime':
         return await this.processQueryWithRealTimeData(params.query, params.context);
+      case 'bridge_sessions':
+
+        return await this.bridgeSessions(params.sessionId, params.previousSessionId);
+
+      case 'merge_contexts':
+
+        return await this.mergeContexts(params.context, params.previousSessionId);
+
+      case 'create_handoff':
+
+        return await this.createHandoff(params.sessionId, params.projectName);
+
+      case 'complete_handoff':
+
+        return await this.completeHandoff(params.sessionId);
+
       default:
         throw new Error('Unknown operation: ' + operation);
       }
@@ -389,16 +405,16 @@ export class BOSSContextBridge {
     try {
       const fileName = `${sessionId}.json`;
       const filePath = path.join(this.contextCacheDir, fileName);
-      
+
       // Check if session file exists
       const fileContent = await fs.readFile(filePath, 'utf8');
       const sessionData = JSON.parse(fileContent);
-      
+
       // Validate session matches project if specified
       if (projectName && sessionData.projectName !== projectName) {
         throw new Error(`Session project mismatch: expected ${projectName}, got ${sessionData.projectName}`);
       }
-      
+
       return {
         success: true,
         sessionId,
@@ -427,13 +443,13 @@ export class BOSSContextBridge {
       const sessions = [];
       const contextFiles = await fs.readdir(this.contextCacheDir);
       const now = Date.now();
-      
+
       for (const file of contextFiles) {
         if (file.endsWith('.json')) {
           const filePath = path.join(this.contextCacheDir, file);
           const stats = await fs.stat(filePath);
           const ageMs = now - stats.mtime.getTime();
-          
+
           // Remove sessions older than timeout
           if (ageMs > this.sessionTimeout) {
             await fs.unlink(filePath);
@@ -445,7 +461,7 @@ export class BOSSContextBridge {
           }
         }
       }
-      
+
       return {
         success: true,
         strategy,
@@ -463,6 +479,338 @@ export class BOSSContextBridge {
     }
   }
 
+
+  /**
+   * Helper: Ensure required directories exist
+   */
+  async ensureDirectories() {
+    try {
+      const { promises: fs } = await import('fs');
+      await fs.mkdir(this.stateTrackerDir, { recursive: true });
+      await fs.mkdir(this.contextCacheDir, { recursive: true });
+      return true;
+    } catch (error) {
+      console.warn('Directory creation warning:', error.message);
+      return false;
+    }
+  }
+
+  /**
+   * Helper: Check if file exists
+   */
+  async fileExists(filePath) {
+    try {
+      const { promises: fs } = await import('fs');
+      await fs.access(filePath);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+
+  /**
+     * SOPHISTICATED HANDOFF SYSTEM - Create Handoff
+     * Initialize session handoff process with state preparation
+     */
+  async createHandoff(sessionId, projectName) {
+    try {
+      await this.ensureDirectories();
+
+      const handoffId = crypto.randomBytes(16).toString('hex');
+      const handoffData = {
+        handoffId,
+        sessionId,
+        projectName,
+        status: 'initiated',
+        createdAt: Date.now(),
+        createdISO: new Date().toISOString(),
+        sourceSession: {
+          id: sessionId,
+          project: projectName,
+          capturedAt: Date.now()
+        },
+        handoffChain: [],
+        metadata: {
+          version: '2.0.0',
+          enterprise: true,
+          sophisticatedFeatures: true
+        }
+      };
+
+      const sessionFile = path.join(this.contextCacheDir, `${sessionId}.json`);
+      if (await this.fileExists(sessionFile)) {
+        const sessionData = JSON.parse(await fs.readFile(sessionFile, 'utf8'));
+        handoffData.sourceSession.context = sessionData.context;
+        handoffData.sourceSession.state = sessionData.state;
+      }
+
+      const handoffFile = path.join(this.contextCacheDir, `handoff_${handoffId}.json`);
+      await fs.writeFile(handoffFile, JSON.stringify(handoffData, null, 2));
+
+      return {
+        success: true,
+        handoffId,
+        sessionId,
+        projectName,
+        status: 'handoff_initiated',
+        nextStep: 'bridge_sessions',
+        timestamp: new Date().toISOString()
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message,
+        operation: 'create_handoff',
+        timestamp: new Date().toISOString()
+      };
+    }
+  }
+
+  /**
+     * SOPHISTICATED HANDOFF SYSTEM - Bridge Sessions
+     * Transfer context between sessions with intelligent merging
+     */
+  async bridgeSessions(sessionId, previousSessionId) {
+    try {
+      await this.ensureDirectories();
+
+      const bridgeData = {
+        operation: 'bridge_sessions',
+        sessionId,
+        previousSessionId,
+        bridgedAt: Date.now(),
+        bridgedISO: new Date().toISOString(),
+        success: false
+      };
+
+      // Load previous session context
+      const prevSessionFile = path.join(this.contextCacheDir, `${previousSessionId}.json`);
+      const currentSessionFile = path.join(this.contextCacheDir, `${sessionId}.json`);
+
+      let previousContext = {};
+      let currentContext = {};
+
+      if (await this.fileExists(prevSessionFile)) {
+        const prevData = JSON.parse(await fs.readFile(prevSessionFile, 'utf8'));
+        previousContext = prevData.context || {};
+        bridgeData.previousContext = previousContext;
+      }
+
+      if (await this.fileExists(currentSessionFile)) {
+        const currentData = JSON.parse(await fs.readFile(currentSessionFile, 'utf8'));
+        currentContext = currentData.context || {};
+      }
+
+      // Intelligent context bridging
+      const bridgedContext = {
+        ...previousContext,
+        ...currentContext,
+        bridge: {
+          fromSession: previousSessionId,
+          toSession: sessionId,
+          bridgedAt: Date.now(),
+          contextKeys: Object.keys(previousContext),
+          mergedKeys: Object.keys({...previousContext, ...currentContext})
+        }
+      };
+
+      // Update current session with bridged context
+      const updatedSessionData = {
+        sessionId,
+        context: bridgedContext,
+        metadata: {
+          bridged: true,
+          fromSession: previousSessionId,
+          bridgedAt: Date.now()
+        },
+        captureTime: new Date().toISOString()
+      };
+
+      await fs.writeFile(currentSessionFile, JSON.stringify(updatedSessionData, null, 2));
+      bridgeData.success = true;
+      bridgeData.bridgedContext = bridgedContext;
+
+      return {
+        success: true,
+        sessionId,
+        previousSessionId,
+        bridgedContext,
+        operation: 'bridge_sessions_complete',
+        timestamp: new Date().toISOString()
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message,
+        operation: 'bridge_sessions',
+        timestamp: new Date().toISOString()
+      };
+    }
+  }
+
+  /**
+     * SOPHISTICATED HANDOFF SYSTEM - Merge Contexts
+     * Intelligent context merging with conflict resolution
+     */
+  async mergeContexts(newContext, previousSessionId) {
+    try {
+      await this.ensureDirectories();
+
+      const mergeResult = {
+        operation: 'merge_contexts',
+        previousSessionId,
+        mergedAt: Date.now(),
+        mergedISO: new Date().toISOString()
+      };
+
+      // Load previous session context
+      const prevSessionFile = path.join(this.contextCacheDir, `${previousSessionId}.json`);
+      let previousContext = {};
+
+      if (await this.fileExists(prevSessionFile)) {
+        const prevData = JSON.parse(await fs.readFile(prevSessionFile, 'utf8'));
+        previousContext = prevData.context || {};
+      }
+
+      // Smart merging with conflict resolution
+      const mergedContext = this.intelligentMerge(previousContext, newContext);
+
+      mergeResult.previousContext = previousContext;
+      mergeResult.newContext = newContext;
+      mergeResult.mergedContext = mergedContext;
+      mergeResult.conflicts = this.detectConflicts(previousContext, newContext);
+
+      return {
+        success: true,
+        mergedContext,
+        conflicts: mergeResult.conflicts,
+        operation: 'merge_contexts_complete',
+        timestamp: new Date().toISOString()
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message,
+        operation: 'merge_contexts',
+        timestamp: new Date().toISOString()
+      };
+    }
+  }
+
+  /**
+     * SOPHISTICATED HANDOFF SYSTEM - Complete Handoff
+     * Finalize handoff with state synchronization
+     */
+  async completeHandoff(sessionId) {
+    try {
+      await this.ensureDirectories();
+
+      // Find handoff files for this session
+      const contextFiles = await fs.readdir(this.contextCacheDir);
+      const handoffFiles = contextFiles.filter(file => file.startsWith('handoff_') && file.endsWith('.json'));
+
+      let handoffData = null;
+      let handoffFile = null;
+
+      // Find the relevant handoff
+      for (const file of handoffFiles) {
+        const filePath = path.join(this.contextCacheDir, file);
+        const data = JSON.parse(await fs.readFile(filePath, 'utf8'));
+        if (data.sessionId === sessionId) {
+          handoffData = data;
+          handoffFile = filePath;
+          break;
+        }
+      }
+
+      if (!handoffData) {
+        return {
+          success: false,
+          error: 'No handoff found for session',
+          sessionId,
+          timestamp: new Date().toISOString()
+        };
+      }
+
+      // Complete the handoff
+      handoffData.status = 'completed';
+      handoffData.completedAt = Date.now();
+      handoffData.completedISO = new Date().toISOString();
+
+      // Update handoff record
+      await fs.writeFile(handoffFile, JSON.stringify(handoffData, null, 2));
+
+      // Clean up completed handoff after delay
+      setTimeout(async () => {
+        try {
+          await fs.unlink(handoffFile);
+        } catch (cleanupError) {
+          // Silent cleanup failure
+        }
+      }, 300000); // 5 minutes delay
+
+      return {
+        success: true,
+        sessionId,
+        handoffId: handoffData.handoffId,
+        status: 'handoff_completed',
+        completedAt: handoffData.completedISO,
+        operation: 'complete_handoff',
+        timestamp: new Date().toISOString()
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message,
+        operation: 'complete_handoff',
+        timestamp: new Date().toISOString()
+      };
+    }
+  }
+
+  /**
+     * Helper: Intelligent context merging with priority handling
+     */
+  intelligentMerge(previousContext, newContext) {
+    const merged = { ...previousContext };
+
+    for (const [key, value] of Object.entries(newContext)) {
+      if (key in merged) {
+        // Conflict resolution: newer wins for most cases
+        if (typeof value === 'object' && typeof merged[key] === 'object') {
+          merged[key] = { ...merged[key], ...value };
+        } else {
+          merged[key] = value; // New value overwrites
+        }
+      } else {
+        merged[key] = value;
+      }
+    }
+
+    return merged;
+  }
+
+  /**
+     * Helper: Detect merging conflicts
+     */
+  detectConflicts(previousContext, newContext) {
+    const conflicts = [];
+
+    for (const [key, newValue] of Object.entries(newContext)) {
+      if (key in previousContext && previousContext[key] !== newValue) {
+        conflicts.push({
+          key,
+          previousValue: previousContext[key],
+          newValue,
+          resolution: 'new_value_used'
+        });
+      }
+    }
+
+    return conflicts;
+  }
+
 }
 
 export const bossContextBridge = {
@@ -473,7 +821,7 @@ export const bossContextBridge = {
     properties: {
       operation: {
         type: 'string',
-        enum: ['capture_session', 'restore_session', 'list_active_sessions', 'cleanup_expired', 'inject_realtime_data', 'process_query_realtime']
+        enum: ['capture_session', 'restore_session', 'bridge_sessions', 'merge_contexts', 'create_handoff', 'complete_handoff', 'list_active_sessions', 'cleanup_expired', 'inject_realtime_data', 'process_query_realtime']
       },
       sessionId: { type: 'string' },
       projectName: { type: 'string' },

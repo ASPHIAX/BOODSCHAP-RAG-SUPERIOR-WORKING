@@ -97,6 +97,7 @@ export async function executeStateTrackerTool(args, requestId) {
 import { MultiDatabaseSearch } from '/app/src/core/rag-tools/vector-search.js';
 import { BOSSStateTracker } from '/app/src/core/rag-tools/state-tracker.js';
 import { BOSSContextBridge } from '/app/src/core/rag-tools/context-bridge.js';
+import { BOSSContextBridge } from '../rag-tools/context-bridge.js';
 
 // Initialize the sophisticated vector search engine
 const vectorSearchEngine = new MultiDatabaseSearch({

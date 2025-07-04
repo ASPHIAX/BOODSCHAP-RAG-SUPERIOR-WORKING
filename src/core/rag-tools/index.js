@@ -4,9 +4,9 @@
  * Addresses ClickUp Task 86c47e3x7: Fix Context Bridge State Bloat & Old Information Syndrome
  */
 
-import { BOSSContextBridge, bossContextBridge } from "./context-bridge.js";
-import { BOSSStateTracker, bossStateTracker } from "./state-tracker.js";
-import { EnhancedVectorSearch, enhancedVectorSearch } from "./vector-search.js";
+import { BOSSContextBridge, bossContextBridge } from './context-bridge.js';
+import { BOSSStateTracker, bossStateTracker } from './state-tracker.js';
+import { EnhancedVectorSearch, enhancedVectorSearch } from './vector-search.js';
 
 /**
  * RAG Superior Manager - Orchestrates all RAG operations
@@ -23,7 +23,7 @@ export class RAGSuperiorManager {
   async initialize() {
     if (!this.initialized) {
       // Initialize all components
-      await this.stateTracker.execute({ operation: "init_system" });
+      await this.stateTracker.execute({ operation: 'init_system' });
       this.initialized = true;
     }
     return { success: true, timestamp: new Date().toISOString() };
@@ -35,31 +35,31 @@ export class RAGSuperiorManager {
    */
   async getRelevantContext(projectName, query, options = {}) {
     await this.initialize();
-    
+
     try {
       // Get active sessions with timestamp scoring
       const activeSessions = await this.contextBridge.execute({
-        operation: "list_active_sessions",
+        operation: 'list_active_sessions',
         projectName
       });
-      
+
       if (!activeSessions.success) {
         return activeSessions;
       }
-      
+
       // Get current project state
       const currentState = await this.stateTracker.execute({
-        operation: "get_current_state",
+        operation: 'get_current_state',
         projectName
       });
-      
+
       // Combine context with vector search intelligence
       const searchResult = await this.vectorSearch.searchWithTimestampPriority(
         query,
         activeSessions.sessions,
         options
       );
-      
+
       return {
         success: true,
         projectName,
@@ -84,28 +84,28 @@ export class RAGSuperiorManager {
    */
   async captureSessionSmart(sessionId, projectName, context, metadata = {}) {
     await this.initialize();
-    
+
     // Capture the session
     const captureResult = await this.contextBridge.execute({
-      operation: "capture_session",
+      operation: 'capture_session',
       sessionId,
       projectName,
       context,
       metadata: {
         ...metadata,
-        enhancedVersion: "2.0.0",
+        enhancedVersion: '2.0.0',
         timestampIntelligence: true
       }
     });
-    
+
     // Auto-cleanup if needed
     if (captureResult.success) {
       await this.contextBridge.execute({
-        operation: "cleanup_expired",
-        strategy: "smart_archive"
+        operation: 'cleanup_expired',
+        strategy: 'smart_archive'
       });
     }
-    
+
     return captureResult;
   }
 }
@@ -138,17 +138,17 @@ export const ragSuperiorTools = [
     }
   },
   {
-    name: "rag_superior_smart_search",
-    description: "Smart context retrieval with timestamp prioritization - solves Old Information Syndrome",
+    name: 'rag_superior_smart_search',
+    description: 'Smart context retrieval with timestamp prioritization - solves Old Information Syndrome',
     inputSchema: {
-      type: "object",
+      type: 'object',
       properties: {
-        projectName: { type: "string" },
-        query: { type: "string" },
-        freshnessDecayFactor: { type: "number" },
-        maxResults: { type: "number" }
+        projectName: { type: 'string' },
+        query: { type: 'string' },
+        freshnessDecayFactor: { type: 'number' },
+        maxResults: { type: 'number' }
       },
-      required: ["projectName", "query"]
+      required: ['projectName', 'query']
     },
     handler: async (params) => {
       const manager = new RAGSuperiorManager();
@@ -158,3 +158,107 @@ export const ragSuperiorTools = [
 ];
 
 export { BOSSContextBridge, BOSSStateTracker, EnhancedVectorSearch };
+
+
+// Compatibility wrappers for existing MCP handler interface
+export async function executeStateTrackerTool(args, requestId) {
+  try {
+    const instance = new BOSSStateTracker();
+    let result;
+
+    if ('execute' === 'searchWithTimestampPriority') {
+      result = await instance.execute(args.query, [], args);
+    } else if ('execute' === 'getRelevantContext') {
+      result = await instance.execute(args.projectName, args.query, args);
+    } else {
+      result = await instance.execute(args);
+    }
+
+    return { jsonrpc: "2.0", id: requestId, result: { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] } };
+  } catch (error) {
+    return { jsonrpc: "2.0", id: requestId, error: { code: -32603, message: "Internal error", data: error.message } };
+  }
+
+}
+
+export async function executeVectorSearchTool(args, requestId) {
+  try {
+    const instance = new EnhancedVectorSearch();
+    let result;
+
+    if ('searchWithTimestampPriority' === 'searchWithTimestampPriority') {
+      result = await instance.searchAll(args.query, ["qdrant"], args.limit || 10);
+    } else if ('searchWithTimestampPriority' === 'getRelevantContext') {
+      result = await instance.searchWithTimestampPriority(args.projectName, args.query, args);
+    } else {
+      result = await instance.searchWithTimestampPriority(args);
+    }
+
+    return { jsonrpc: "2.0", id: requestId, result: { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] } };
+  } catch (error) {
+    return { jsonrpc: "2.0", id: requestId, error: { code: -32603, message: "Internal error", data: error.message } };
+  }
+
+}
+
+export async function executeRagSuperiorTool(args, requestId) {
+  try {
+    const instance = new RAGSuperiorManager();
+    let result;
+
+    if ('getRelevantContext' === 'searchWithTimestampPriority') {
+      result = await instance.getRelevantContext(args.query, [], args);
+    } else if ('getRelevantContext' === 'getRelevantContext') {
+      result = await instance.getRelevantContext(args.projectName, args.query, args);
+    } else {
+      result = await instance.getRelevantContext(args);
+    }
+
+    return { jsonrpc: "2.0", id: requestId, result: { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] } };
+  } catch (error) {
+    return { jsonrpc: "2.0", id: requestId, error: { code: -32603, message: "Internal error", data: error.message } };
+  }
+
+}
+
+export async function executeRagSuperiorManagerTool(args, requestId) {
+  try {
+    const instance = new RAGSuperiorManager();
+    let result;
+
+    if ('orchestrateRAGOperations' === 'searchWithTimestampPriority') {
+      result = await instance.orchestrateRAGOperations(args.query, [], args);
+    } else if ('orchestrateRAGOperations' === 'getRelevantContext') {
+      result = await instance.orchestrateRAGOperations(args.projectName, args.query, args);
+    } else {
+      result = await instance.orchestrateRAGOperations(args);
+    }
+
+    return { jsonrpc: "2.0", id: requestId, result: { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] } };
+  } catch (error) {
+    return { jsonrpc: "2.0", id: requestId, error: { code: -32603, message: "Internal error", data: error.message } };
+  }
+
+}
+
+export async function executeContextBridgeTool(args, requestId) {
+  try {
+    const instance = new BOSSContextBridge();
+    let result;
+
+    if ('execute' === 'searchWithTimestampPriority') {
+      result = await instance.execute(args.query, [], args);
+    } else if ('execute' === 'getRelevantContext') {
+      result = await instance.execute(args.projectName, args.query, args);
+    } else {
+      result = await instance.execute(args);
+    }
+
+    return { jsonrpc: "2.0", id: requestId, result: { content: [{ type: "text", text: JSON.stringify(result, null, 2) }] } };
+  } catch (error) {
+    return { jsonrpc: "2.0", id: requestId, error: { code: -32603, message: "Internal error", data: error.message } };
+  }
+
+}
+
+export default { executeStateTrackerTool, executeVectorSearchTool, executeRagSuperiorTool, executeRagSuperiorManagerTool, executeContextBridgeTool };
